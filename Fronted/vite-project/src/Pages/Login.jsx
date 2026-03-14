@@ -1,114 +1,233 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { IoMdEye, IoIosEyeOff } from "react-icons/io";
+import { FcGoogle } from "react-icons/fc";
 import axios from "axios";
-import {toast} from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../Redux/authoSlice";
 
 function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [show, setShow] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
 
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const [loading,setLoading] = useState(false);
+  const [showPassword,setShowPassword] = useState(false);
+
+  const [form,setForm] = useState({
+    email:"",
+    password:""
+  });
+
+  const handleChange = useCallback((e)=>{
+    const {name,value} = e.target;
+
+    setForm(prev=>({
+      ...prev,
+      [name]:value
+    }));
+
+  },[]);
+
+  const togglePassword = () => {
+    setShowPassword(prev=>!prev);
+  };
+
+  const handleSubmit = useCallback(async(e)=>{
+
     e.preventDefault();
-    if (loading) return;
 
-    try {
+    try{
+
       setLoading(true);
-
-      const data = { email, password }; // ✅ FIXED
 
       const res = await axios.post(
         "http://localhost:3000/api/users/login",
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
+        form,
+        { withCredentials:true }
       );
 
-      if (res.data.success) {
+      if(res.data.success){
 
         dispatch(loginSuccess(res.data.user));
-        toast.success("Login successful");
+        toast.success("Welcome back 👋");
         navigate("/");
+
       }
-    } catch (error) {
-      if (error.response) {
-        alert(error.response.data.message);
-      } else {
-        alert("Server not responding");
-      }
-    } finally {
+
+    }catch(error){
+
+      toast.error(
+        error?.response?.data?.message ||
+        "Login failed"
+      );
+
+    }finally{
+
       setLoading(false);
+
     }
-  };
+
+  },[form,dispatch,navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-semibold mb-6 text-center text-gray-900">
-          Login
-        </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 to-gray-100 px-4">
+
+      <div className="w-full max-w-md bg-white shadow-2xl rounded-2xl p-8">
+
+        {/* Logo */}
+
+        <div className="text-center mb-6">
+
+          <h1 className="text-3xl font-bold text-[#fe395c]">
+            StayFinder
+          </h1>
+
+          <p className="text-gray-500 text-sm mt-1">
+            Welcome back! Please login
+          </p>
+
+        </div>
+
+        {/* Form */}
+
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4"
+        >
+
           {/* Email */}
-          <input
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#fe395c]"
-          />
 
-          {/* Password */}
-          <div className="relative">
+          <div>
+
+            <label className="text-sm text-gray-600">
+              Email
+            </label>
+
             <input
-              type={show ? "text" : "password"}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="example@email.com"
               required
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-[#fe395c]"
+              className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#fe395c] outline-none"
             />
 
-            <div
-              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
-              onClick={()=>setShow(!show)}>
-                {show ? <IoIosEyeOff size={20} /> : <IoMdEye size={20} />}
-              
-              
-            </div>
           </div>
+
+          {/* Password */}
+
+          <div>
+
+            <label className="text-sm text-gray-600">
+              Password
+            </label>
+
+            <div className="relative">
+
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="Enter password"
+                required
+                className="w-full mt-1 border border-gray-300 rounded-lg px-4 py-3 pr-10 focus:ring-2 focus:ring-[#fe395c] outline-none"
+              />
+
+              <button
+                type="button"
+                onClick={togglePassword}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+              >
+                {showPassword
+                  ? <IoIosEyeOff size={20}/>
+                  : <IoMdEye size={20}/>
+                }
+              </button>
+
+            </div>
+
+          </div>
+
+          {/* Forgot password */}
+
+          <div className="flex justify-end">
+
+            <span
+              onClick={()=>navigate("/forgot")}
+              className="text-sm text-[#fe395c] cursor-pointer hover:underline"
+            >
+              Forgot password?
+            </span>
+
+          </div>
+
+          {/* Submit */}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#fe395c] text-white py-3 rounded-xl font-medium hover:opacity-90 disabled:opacity-60"
+            className="w-full bg-[#fe395c] text-white py-3 rounded-xl font-medium hover:opacity-90 transition"
           >
-            {loading ? "Logging in..." : "Login"}
+
+            {loading
+              ? "Logging in..."
+              : "Login"
+            }
+
           </button>
+
         </form>
 
-        <p className="text-center text-sm mt-5">
-          Don’t have an account?{" "}
+        {/* Divider */}
+
+        <div className="flex items-center my-6">
+
+          <div className="flex-1 border-t"></div>
+
+          <span className="px-3 text-gray-400 text-sm">
+            OR
+          </span>
+
+          <div className="flex-1 border-t"></div>
+
+        </div>
+
+        {/* Google login */}
+
+        <button
+          className="w-full border border-gray-300 py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition"
+        >
+
+          <FcGoogle size={20}/>
+
+          Continue with Google
+
+        </button>
+
+        {/* Signup */}
+
+        <p className="text-center text-sm mt-6">
+
+          Don't have an account?{" "}
+
           <span
-            onClick={() => navigate("/signup")}
+            onClick={()=>navigate("/signup")}
             className="text-[#fe395c] font-medium cursor-pointer"
           >
             Sign up
           </span>
+
         </p>
+
       </div>
+
     </div>
   );
 }
 
-export default Login;
+export default memo(Login);

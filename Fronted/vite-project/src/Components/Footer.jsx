@@ -1,60 +1,66 @@
 import React from "react";
 import { FaFacebookF, FaTwitter, FaInstagram } from "react-icons/fa";
 
+const footerSections = [
+  {
+    title: "Support",
+    links: [
+      "Help Center",
+      "Safety information",
+      "Cancellation options",
+      "Our COVID-19 Response",
+      "Report a concern",
+    ],
+  },
+  {
+    title: "Hosting",
+    links: [
+      "Airbnb your home",
+      "AirCover for Hosts",
+      "Hosting resources",
+      "Community forum",
+      "Hosting responsibly",
+    ],
+  },
+  {
+    title: "Airbnb",
+    links: ["Newsroom", "New features", "Careers", "Investors", "Gift cards"],
+  },
+  {
+    title: "Community",
+    links: [
+      "Diversity & Belonging",
+      "Accessibility",
+      "Airbnb Associates",
+      "Frontline Stays",
+    ],
+  },
+];
+
 function Footer() {
   return (
-    <footer className="bg-[#f7f7f7] border-t border-gray-300 mt-10 ">
+    <footer className="bg-[#f7f7f7] border-t border-gray-300 mt-10">
       
       {/* Top Section */}
-{/* Top Section */}
-<div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
+        
+        {footerSections.map((section, index) => (
+          <div key={index}>
+            <h3 className="font-semibold mb-4">{section.title}</h3>
 
-        {/* Column 1 */}
-        <div>
-          <h3 className="font-semibold mb-4">Support</h3>
-          <ul className="space-y-2 text-sm text-gray-600">
-            <li className="hover:underline cursor-pointer">Help Center</li>
-            <li className="hover:underline cursor-pointer">Safety information</li>
-            <li className="hover:underline cursor-pointer">Cancellation options</li>
-            <li className="hover:underline cursor-pointer">Our COVID-19 Response</li>
-            <li className="hover:underline cursor-pointer">Report a concern</li>
-          </ul>
-        </div>
+            <ul className="space-y-2 text-sm text-gray-600">
+              {section.links.map((link, i) => (
+                <li
+                  key={i}
+                  className="hover:underline cursor-pointer transition"
+                >
+                  {link}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
 
-        {/* Column 2 */}
-        <div>
-          <h3 className="font-semibold mb-4">Hosting</h3>
-          <ul className="space-y-2 text-sm text-gray-600">
-            <li className="hover:underline cursor-pointer">Airbnb your home</li>
-            <li className="hover:underline cursor-pointer">AirCover for Hosts</li>
-            <li className="hover:underline cursor-pointer">Hosting resources</li>
-            <li className="hover:underline cursor-pointer">Community forum</li>
-            <li className="hover:underline cursor-pointer">Hosting responsibly</li>
-          </ul>
-        </div>
-
-        {/* Column 3 */}
-        <div>
-          <h3 className="font-semibold mb-4">Airbnb</h3>
-          <ul className="space-y-2 text-sm text-gray-600">
-            <li className="hover:underline cursor-pointer">Newsroom</li>
-            <li className="hover:underline cursor-pointer">New features</li>
-            <li className="hover:underline cursor-pointer">Careers</li>
-            <li className="hover:underline cursor-pointer">Investors</li>
-            <li className="hover:underline cursor-pointer">Gift cards</li>
-          </ul>
-        </div>
-
-        {/* Column 4 */}
-        <div>
-          <h3 className="font-semibold mb-4">Community</h3>
-          <ul className="space-y-2 text-sm text-gray-600">
-            <li className="hover:underline cursor-pointer">Diversity & Belonging</li>
-            <li className="hover:underline cursor-pointer">Accessibility</li>
-            <li className="hover:underline cursor-pointer">Airbnb Associates</li>
-            <li className="hover:underline cursor-pointer">Frontline Stays</li>
-          </ul>
-        </div>
       </div>
 
       {/* Bottom Section */}
@@ -63,7 +69,7 @@ function Footer() {
 
           {/* Left */}
           <div className="flex flex-wrap gap-3 items-center">
-            <span>© 2025 Airbnb, Inc.</span>
+            <span>© {new Date().getFullYear()} Airbnb, Inc.</span>
             <span>·</span>
             <span className="hover:underline cursor-pointer">Privacy</span>
             <span>·</span>
@@ -76,10 +82,12 @@ function Footer() {
           <div className="flex items-center gap-4 mt-4 md:mt-0">
             <span className="hover:underline cursor-pointer">🌐 English (IN)</span>
             <span className="hover:underline cursor-pointer">₹ INR</span>
-            <FaFacebookF className="cursor-pointer hover:text-black" />
-            <FaTwitter className="cursor-pointer hover:text-black" />
-            <FaInstagram className="cursor-pointer hover:text-black" />
+
+            <FaFacebookF className="cursor-pointer hover:text-black transition" />
+            <FaTwitter className="cursor-pointer hover:text-black transition" />
+            <FaInstagram className="cursor-pointer hover:text-black transition" />
           </div>
+
         </div>
       </div>
     </footer>

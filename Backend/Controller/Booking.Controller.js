@@ -185,7 +185,7 @@ export const getBookingById = async(req, res) => {
         const { id } = req.params;
         const key = `booking:${id}`;
 
-        const cacheData = await client.get(key)
+        const cacheData = await client.get(key);
 
         if (cacheData) {
             return res.json(JSON.parse(cacheData));
@@ -193,21 +193,31 @@ export const getBookingById = async(req, res) => {
 
         const booking = await Booking.findById(id)
             .populate("user", "name email phone")
-            .populate("listing");
+            .populate("listing")
+            .lean();
 
         if (!booking) {
-            return res.status(404).json({ success: false });
+            return res.status(404).json({
+                success: false,
+                message: "Booking not found"
+            });
         }
 
-
+        // 🔥 Fix: check listing
+        if (!booking.listing) {
+            return res.status(404).json({
+                success: false,
+                message: "Listing not found for this booking"
+            });
+        }
 
         const result = {
             success: true,
             booking: {
                 _id: booking._id,
-                listingTitle: booking.listing.title,
-                location: booking.listing.location,
-                images: booking.listing.images,
+                listingTitle: booking.listing.title || "Listing removed",
+                location: booking.listing.location || {},
+                images: booking.listing.images || [],
                 guestName: booking.user.name,
                 guestEmail: booking.user.email,
                 guestPhone: booking.user.phone,
@@ -223,6 +233,51 @@ export const getBookingById = async(req, res) => {
         return res.json(result);
 
     } catch (error) {
-        res.status(500).json({ success: false });
+        console.error(error); // 🔥 important for debugging
+        res.status(500).json({
+            success: false,
+            message: "Server Error"
+        });
+    }
+};
+
+export const deleteBooking = async(req, res) => {
+    try {
+
+        const { id } = req.params;
+
+        const booking = await Booking.findById(id);
+
+        if (!booking) {
+            return res.status(404).json({
+                success: false,
+                message: "Booking not found",
+            });
+        }
+
+        // Only owner can delete booking
+        if (booking.user.toString() !== req.user.id) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized",
+            });
+        }
+
+        await Booking.findByIdAndDelete(id);
+
+        res.status(200).json({
+            success: true,
+            message: "Booking deleted successfully",
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        res.status(500).json({
+            success: false,
+            message: "Server error",
+        });
+
     }
 };

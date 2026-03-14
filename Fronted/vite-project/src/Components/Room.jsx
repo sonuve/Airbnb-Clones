@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { GiCombinationLock } from "react-icons/gi";
@@ -18,23 +18,25 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Nav2 from "./Nav2";
 import { loadCashfreeSDK } from "../../Utiles/loadsCashfree.js";
-import CommentsPages from "../Pages/CommentsPages.jsx";
+const CommentsPages = React.lazy(() => import("../Pages/CommentsPages.jsx"));
 import { setBooking } from "../../Redux/Booking.js";
 import { setReviews } from "../../Redux/reviewSlice.js";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 
 function Room() {
   const { id } = useParams();
-  const listings = useSelector((state) => state.listing.listings);
-  const user = useSelector((state) => state.auth.user);
-  const bookings = useSelector((state) => state.Booking.Bookings);
-  const reviews = useSelector((state) => state.review.reviews);
+  const { listings } = useSelector((state) => state.listing);
+  const { user } = useSelector((state) => state.auth);
+  const { bookings } = useSelector((state) => state.Booking);
 
-  console.log(bookings);
+  // console.log(bookings);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const listing = listings?.find((item) => item._id === id);
+  const listing = useMemo(
+    () => listings?.find((item) => item._id === id),
+    [listings, id]
+  );
 
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
@@ -70,42 +72,53 @@ function Room() {
     });
 
   useEffect(() => {
+    if (!user) return;
+
+    const controller = new AbortController();
+
     const fetchBookings = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:3000/api/booking/my",
-
-          { withCredentials: true }
-        );
+        const res = await axios.get("http://localhost:3000/api/booking/my", {
+          withCredentials: true,
+          signal: controller.signal,
+        });
 
         dispatch(setBooking(res.data.bookings));
       } catch (err) {
-        console.log(err);
+        if (err.name !== "CanceledError") {
+          console.log(err);
+        }
       }
     };
 
-    if (user) fetchBookings();
+    fetchBookings();
+
+    return () => controller.abort();
   }, [user, dispatch]);
 
   //Show the review box only if the user has stayed at the hotel
-  const fetchReviews = async () => {
-    try {
-      const res = await axios.get(
-        `http://localhost:3000/api/review/comments/${listing._id}`
-      );
-      if (res.data.success) {
-        dispatch(setReviews(res.data.reviews));
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
   useEffect(() => {
-    if (listing?._id) {
-      fetchReviews();
-    }
-  }, [listing?._id]);
+    if (!listing?._id) return;
+
+    const controller = new AbortController();
+
+    const fetchReviews = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:3000/api/review/comments/${listing._id}`,
+          { signal: controller.signal }
+        );
+
+        if (res.data.success) {
+          dispatch(setReviews(res.data.reviews));
+        }
+      } catch (error) {}
+    };
+
+    fetchReviews();
+
+    return () => controller.abort();
+  }, [listing?._id, dispatch]);
 
   //hotel bookeing function
   const handleReservePayment = async () => {
@@ -168,7 +181,14 @@ function Room() {
     checkAvailability();
   }, [checkIn, checkOut, listing?._id]);
 
-  if (!listing) return <p className="text-center mt-20">Loading...</p>;
+  if (!listing) {
+    return (
+      <div className="max-w-7xl mx-auto p-6 animate-pulse">
+        <div className="h-8 bg-gray-200 w-1/3 mb-4 rounded"></div>
+        <div className="h-80 bg-gray-200 rounded-xl"></div>
+      </div>
+    );
+  }
   // 👉 Total Price
   const totalPrice = nights * listing.pricePerNight;
 
@@ -230,6 +250,32 @@ function Room() {
     }
   };
 
+  const { reviews } = useSelector((state) => state.review);
+
+  const reviewsList = useMemo(() => {
+    return reviews.map((rev) => (
+      <div key={rev._id} className="border rounded-xl p-4 bg-white shadow-sm">
+        <div className="flex items-center gap-3 mb-2">
+          <img
+            src={rev.user?.avatar || "https://i.pravatar.cc/40"}
+            width={32}
+            height={32}
+            loading="lazy"
+            className="w-8 h-8 rounded-full object-cover"
+            alt="user"
+          />
+
+          <div>
+            <p className="font-semibold text-sm">{rev.user?.name}</p>
+            <p className="text-xs text-gray-500">⭐ {rev.rating} / 5</p>
+          </div>
+        </div>
+
+        <p className="text-gray-700 text-sm">{rev.comment}</p>
+      </div>
+    ));
+  }, [reviews]);
+
   return (
     <>
       <Nav2 />
@@ -241,65 +287,64 @@ function Room() {
           {listing.location?.city}, {listing.location?.country}
         </p>
 
-        
-       {/* ================= Images ================= */}
-<div className="mt-5">
+        {/* ================= Images ================= */}
+        <div className="mt-5">
+          {/* If no images */}
+          {!listing?.images || listing.images.length === 0 ? (
+            <div className="w-full h-[400px] bg-gray-200 rounded-xl flex items-center justify-center text-gray-500">
+              No Images Available
+            </div>
+          ) : (
+            <>
+              {/* ================= MOBILE VIEW ================= */}
+              <div className="md:hidden flex overflow-x-auto gap-2 snap-x snap-mandatory scroll-smooth pb-4">
+                {listing.images.map((img, i) => (
+                  <div
+                    key={i}
+                    className="flex-shrink-0 w-[85vw] aspect-[4/3] bg-gray-200 rounded-xl overflow-hidden snap-center"
+                  >
+                    <LazyLoadImage
+                      src={img}
+                      width={800}
+                      height={600}
+                      // placeholderSrc="https://via.placeholder.com/800x600"
+                      loading="eager"
+                      className="object-cover w-full h-full"
+                      alt={`Listing ${i}`}
+                    />
+                  </div>
+                ))}
+              </div>
 
-{/* If no images */}
-{!listing?.images || listing.images.length === 0 ? (
-  <div className="w-full h-[400px] bg-gray-200 rounded-xl flex items-center justify-center text-gray-500">
-    No Images Available
-  </div>
-) : (
-  <>
-    {/* ================= MOBILE VIEW ================= */}
-    <div className="md:hidden flex overflow-x-auto gap-2 snap-x snap-mandatory scroll-smooth pb-4">
-      {listing.images.map((img, i) => (
-        <LazyLoadImage
-          key={i}
-          src={img}
-          onError={(e) =>
-            (e.target.src =
-              "https://via.placeholder.com/600x400?text=Image+Not+Available")
-          }
-          className="flex-shrink-0 w-[85vw] aspect-[4/3] object-cover rounded-xl snap-center"
-          alt={`Listing ${i}`}
-        />
-      ))}
-    </div>
+              {/* ================= DESKTOP VIEW ================= */}
+              <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[420px] rounded-xl overflow-hidden">
+                {/* BIG IMAGE */}
+                <div className="col-span-2 row-span-2 overflow-hidden">
+                  <LazyLoadImage
+                    src={listing.images?.[0]}
+                    width={1200}
+                    height={800}
+                    className="w-full h-full object-cover center hover:brightness-90 transition"
+                    alt="Main Listing"
+                  />
+                </div>
 
-    {/* ================= DESKTOP VIEW ================= */}
-    <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 aspect-[4/2] rounded-xl overflow-hidden">
-
-      {/* Main Big Image */}
-      <LazyLoadImage
-        src={listing.images?.[0]}
-        onError={(e) =>
-          (e.target.src =
-            "https://via.placeholder.com/600x400?text=Image+Not+Available")
-        }
-        className="col-span-2 row-span-2 w-full h-full object-cover rounded-xl"
-        alt="Main"
-      />
-
-      {/* Small Images */}
-      {listing.images.slice(1, 5).map((img, i) => (
-        <LazyLoadImage
-          key={i}
-          src={img}
-          onError={(e) =>
-            (e.target.src =
-              "https://via.placeholder.com/600x400?text=Image+Not+Available")
-          }
-          className="w-full h-full object-cover rounded-xl"
-          alt={`Listing ${i + 1}`}
-        />
-      ))}
-    </div>
-  </>
-)}
-</div>
-
+                {/* SMALL IMAGES */}
+                {listing.images?.slice(1, 5).map((img, i) => (
+                  <div key={i} className="overflow-hidden">
+                    <LazyLoadImage
+                      src={img}
+                      width={600}
+                      height={400}
+                      className="w-full h-full object-cover hover:brightness-90 transition"
+                      alt={`Listing ${i + 1}`}
+                    />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
 
         {/* ================= Content ================= */}
         <div className="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-10 px-4 md:px-6">
@@ -635,7 +680,7 @@ function Room() {
           <h3 className="text-2xl font-semibold mb-6">Reviews</h3>
 
           {/* Show reviews */}
-          {reviews.length > 0 ? (
+          {/* {reviews.length > 0 ? (
             <div className="space-y-4">
               {reviews.map((rev) => (
                 <div
@@ -663,14 +708,22 @@ function Room() {
             </div>
           ) : (
             <p className="text-gray-500 text-sm">No reviews yet</p>
+          )} */}
+          {/* Show reviews */}
+          {reviews.length > 0 ? (
+            <div className="space-y-4">{reviewsList}</div>
+          ) : (
+            <p className="text-gray-500 text-sm">No reviews yet</p>
           )}
 
           {/* Comment Box */}
           {user && canReview ? (
-            <CommentsPages
-              listingId={listing._id}
-              onReviewAdded={fetchReviews}
-            />
+            <Suspense fallback={<p>Loading reviews...</p>}>
+              <CommentsPages
+                listingId={listing._id}
+                onReviewAdded={fetchReviews}
+              />
+            </Suspense>
           ) : (
             <p className="text-sm text-gray-500 mt-4">
               Only guests who stayed here can leave a review.

@@ -1,46 +1,38 @@
 import mongoose from "mongoose";
-
 const listingSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
         trim: true,
     },
-
     description: {
         type: String,
         required: true,
     },
-
     pricePerNight: {
         type: Number,
         required: true,
     },
-
     location: {
         address: String,
         city: String,
         state: String,
         country: String,
     },
-
     images: {
         type: [String],
         required: true,
     },
-
     category: {
         type: String,
         enum: ["Villa", "Room", "PG", "Flat", "Farm House", "Cabin"],
         required: true,
     },
-
     host: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
     },
-
     maxGuests: {
         type: Number,
         required: true,

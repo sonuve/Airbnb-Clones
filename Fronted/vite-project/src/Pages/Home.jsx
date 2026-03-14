@@ -1,30 +1,58 @@
-import React, { Suspense } from "react";
-import Nav from "../Components/Nav";
-import Footer from "../Components/Footer";
-import useFetchAllListing from "../../Hook/getAllListing";
-import useGetCityListings from "../../Hook/getCitywise";
-import ErrorBoundary from "../Components/ErrorBoundary.jsx";
-const ListingsComponenet=React.lazy(()=>import("../Components/ListingsComponenet.jsx"))
+import React, { Suspense, useEffect } from "react";
+
+const Nav = React.lazy(() => import("../Components/Nav.jsx"));
+const Footer = React.lazy(() => import("../Components/Footer.jsx"));
+const ListingsComponent = React.lazy(() =>
+  import("../Components/ListingsComponenet.jsx")
+);
+const ErrorBoundary = React.lazy(() =>
+  import("../Components/ErrorBoundary.jsx")
+);
+
+import useFetchAllListing from "../../Hook/getAllListing.js";
+import useGetCityListings from "../../Hook/getCitywise.js";
 
 function Home() {
 
-  // 🔥 Fetch All Listings
-   useFetchAllListing();
 
-  // 🔥 Fetch Citywise Listings
-  useGetCityListings();
+
+ /* ✅ Call hooks directly */
+ useFetchAllListing();
+ useGetCityListings();
+
 
   return (
-    <div className="h-screen w-full flex flex-col justify-between bg-gray-100">
-      <Nav />
-      <ErrorBoundary>
-      <Suspense fallback={<div className="text-center mt-10">Loading...</div>}>
-      <ListingsComponenet />
+    <div className="min-h-screen flex flex-col bg-gray-100">
+
+      {/* NAVBAR */}
+      <Suspense fallback={<div className="p-4">Loading Navbar...</div>}>
+        <Nav />
       </Suspense>
-      </ErrorBoundary>
-      <Footer />
+
+      {/* MAIN CONTENT */}
+      <main className="flex-1">
+
+        <ErrorBoundary>
+          <Suspense
+            fallback={
+              <div className="flex justify-center items-center mt-20 text-lg">
+                Loading listings...
+              </div>
+            }
+          >
+            <ListingsComponent />
+          </Suspense>
+        </ErrorBoundary>
+
+      </main>
+
+      {/* FOOTER */}
+      <Suspense fallback={<div className="p-4">Loading Footer...</div>}>
+        <Footer />
+      </Suspense>
+
     </div>
   );
 }
 
-export default Home;
+export default React.memo(Home);

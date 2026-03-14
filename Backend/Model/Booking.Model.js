@@ -7,33 +7,27 @@ const bookingSchema = new mongoose.Schema({
         ref: "User",
         required: true,
     },
-
     listing: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Listing",
         required: true,
     },
-
     checkIn: {
         type: Date,
         required: true,
     },
-
     checkOut: {
         type: Date,
         required: true,
     },
-
     guests: {
         type: Number,
         required: true,
     },
-
     totalPrice: {
         type: Number,
         required: true,
     },
-
     // ✅ UPDATED STATUS FLOW
     status: {
         type: String,
@@ -45,7 +39,6 @@ const bookingSchema = new mongoose.Schema({
         ],
         default: "reserved",
     },
-
     // ⭐ Needed for review permission
     reviewed: {
         type: Boolean,

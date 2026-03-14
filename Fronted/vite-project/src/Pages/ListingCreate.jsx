@@ -1,277 +1,350 @@
+import React,
+{
+  useRef,
+  useState,
+  useEffect,
+  useCallback,
+  Suspense
+} from "react";
+
 import axios from "axios";
-import React, { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { addListing } from "../../Redux/Listing";
 import { useNavigate } from "react-router-dom";
-import Nav2 from "../Components/Nav2";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+import imageCompression from "browser-image-compression";
+
+const Nav2 = React.lazy(() => import("../Components/Nav2.jsx"));
 
 function ListingCreate() {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("");
-  const [location, setLocation] = useState({
-    address: "",
-    city: "",
-    state: "",
-    country: "",
-  });
-  const [maxGuests, setMaxGuests] = useState("");
-  const [pricePerNight, setPricePerNight] = useState("");
-  const [washrooms, setWashrooms] = useState("");
-  const [bedrooms, setBedrooms] = useState("");
-  const [beds, setBeds] = useState("");
-  const [images, setImages] = useState([]);
-  const imageRef = useRef(null);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const imageRef = useRef(null);
 
-  const handleImageChange = (e) => {
-    const file = Array.from(e.target.files);
-    setImages((prev) => [...prev, ...file]);
-  };
+  const MAX_IMAGES = 10;
 
-  const removeImage = (index) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
-  };
+  const [loading,setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    try {
-      e.preventDefault();
+  const [form,setForm] = useState({
+    title:"",
+    description:"",
+    category:"",
+    maxGuests:"",
+    pricePerNight:"",
+    washrooms:"",
+    bedrooms:"",
+    beds:"",
+    address:"",
+    city:"",
+    state:"",
+    country:""
+  });
+
+  const [images,setImages] = useState([]);
+  const [preview,setPreview] = useState([]);
+
+  /* ---------------- INPUT CHANGE ---------------- */
+
+  const handleChange = useCallback((e)=>{
+
+    const {name,value} = e.target;
+
+    setForm(prev => ({
+      ...prev,
+      [name]:value
+    }));
+
+  },[]);
+
+  /* ---------------- IMAGE CHANGE ---------------- */
+
+  const handleImageChange = useCallback(async (e)=>{
+
+    const files = Array.from(e.target.files);
+
+    if(images.length + files.length > MAX_IMAGES){
+      toast.error("Maximum 10 images allowed");
+      return;
+    }
+
+    try{
+
+      const compressed = await Promise.all(
+        files.map(file =>
+          imageCompression(file,{
+            maxSizeMB:2,
+            maxWidthOrHeight:1280
+          })
+        )
+      );
+
+      const newPreview = compressed.map(file => ({
+        file,
+        url:URL.createObjectURL(file)
+      }));
+
+      setImages(prev => [...prev,...compressed]);
+      setPreview(prev => [...prev,...newPreview]);
+
+    }catch(err){
+
+      toast.error("Image compression failed");
+
+    }
+
+  },[images]);
+
+  /* ---------------- REMOVE IMAGE ---------------- */
+
+  const removeImage = useCallback((index)=>{
+
+    setImages(prev => prev.filter((_,i)=>i!==index));
+
+    setPreview(prev=>{
+      URL.revokeObjectURL(prev[index].url);
+      return prev.filter((_,i)=>i!==index);
+    });
+
+  },[]);
+
+  /* ---------------- CLEAN MEMORY ---------------- */
+
+  useEffect(()=>{
+    return ()=>{
+      preview.forEach(img => URL.revokeObjectURL(img.url));
+    };
+  },[preview]);
+
+  /* ---------------- SUBMIT ---------------- */
+
+  const handleSubmit = useCallback(async(e)=>{
+
+    e.preventDefault();
+
+    try{
+
+      setLoading(true);
 
       const data = new FormData();
-      data.append("title", title);
-      data.append("description", description);
-      data.append("category", category);
-      data.append("maxGuests",Number( maxGuests));
-      data.append("pricePerNight", Number(pricePerNight));
-      data.append("address", location.address);
-      data.append("city", location.city);
-      data.append("state", location.state);
-      data.append("country", location.country);
-      data.append("washrooms",Number( washrooms));
-      data.append("bedrooms",Number( bedrooms));
-      data.append("beds",Number( beds));
 
-      images.forEach((image) => {
-        data.append("images", image);
+      Object.entries(form).forEach(([key,value])=>{
+        data.append(key,value);
       });
+
+      images.forEach(img => data.append("images",img));
 
       const res = await axios.post(
         "http://localhost:3000/api/listing/add/listing",
         data,
         {
-          headers: {
-              "Content-Type": "multipart/form-data",
-            },
-            withCredentials: true,
+          headers:{ "Content-Type":"multipart/form-data" },
+          withCredentials:true
         }
       );
 
-      if (res.data.success) {
+      if(res.data.success){
+
         dispatch(addListing(res.data.listing));
         toast.success(res.data.message);
         navigate("/");
+
       }
-    } catch (error) {
-      console.log(error);
+
+    }catch(err){
+
+      console.log(err);
       toast.error("Something went wrong");
+
+    }finally{
+
+      setLoading(false);
+
     }
-  };
+
+  },[form,images,dispatch,navigate]);
+
+  /* ---------------- UI ---------------- */
 
   return (
+
     <>
-      <Nav2 />
+
+      <Suspense fallback={<div>Loading...</div>}>
+        <Nav2/>
+      </Suspense>
 
       <div className="min-h-screen bg-gray-100 px-4 py-10">
+
         <div className="max-w-4xl mx-auto bg-white p-8 rounded-3xl shadow-xl">
 
-          {/* HEADER */}
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-3xl font-bold">Create New Listing</h2>
+
+            <h2 className="text-3xl font-bold">
+              Create New Listing
+            </h2>
 
             <button
-              onClick={() => navigate(-1)}
-              className="px-4 py-2 bg-gray-200 rounded-xl hover:bg-gray-300 transition"
+              onClick={()=>navigate(-1)}
+              className="px-4 py-2 bg-gray-200 rounded-xl"
             >
               ← Back
             </button>
+
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-8">
 
-            {/* BASIC INFO */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold border-b pb-2">
-                Basic Information
-              </h3>
+            {/* TITLE */}
 
-              <input
-                placeholder="Listing Title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-rose-400 outline-none"
-                required
-              />
+            <input
+              name="title"
+              placeholder="Listing Title"
+              value={form.title}
+              onChange={handleChange}
+              className="w-full border rounded-xl p-3"
+              required
+            />
 
-              <textarea
-                placeholder="Description"
-                rows="4"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-rose-400 outline-none"
-                required
-              />
+            {/* DESCRIPTION */}
 
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-rose-400 outline-none"
-                required
-              >
-                <option value="">Select Category</option>
-                <option>Villa</option>
-                <option>Room</option>
-                <option>PG</option>
-                <option>Flat</option>
-                <option>Farm House</option>
-                <option>Cabin</option>
-              </select>
-            </div>
+            <textarea
+              name="description"
+              rows="4"
+              placeholder="Description"
+              value={form.description}
+              onChange={handleChange}
+              className="w-full border rounded-xl p-3"
+              required
+            />
+
+            {/* CATEGORY */}
+
+            <select
+              name="category"
+              value={form.category}
+              onChange={handleChange}
+              className="w-full border rounded-xl p-3"
+              required
+            >
+
+              <option value="">Select Category</option>
+              <option>Villa</option>
+              <option>Room</option>
+              <option>PG</option>
+              <option>Flat</option>
+              <option>Farm House</option>
+              <option>Cabin</option>
+
+            </select>
 
             {/* LOCATION */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold border-b pb-2">
-                Location
-              </h3>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                {["address", "city", "state", "country"].map((field) => (
-                  <input
+            <div className="grid md:grid-cols-2 gap-4">
+
+              {["address","city","state","country"].map(field => (
+
+                <input
+                  key={field}
+                  name={field}
+                  placeholder={field}
+                  value={form[field]}
+                  onChange={handleChange}
+                  className="border rounded-xl p-3"
                   required
-                    key={field}
-                    placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                    value={location[field]}
-                    onChange={(e) =>
-                      setLocation({ ...location, [field]: e.target.value })
-                    }
-                    className="border rounded-xl p-3 focus:ring-2 focus:ring-rose-400 outline-none"
-                  />
-                ))}
-              </div>
+                />
+
+              ))}
+
             </div>
 
             {/* PROPERTY DETAILS */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold border-b pb-2">
-                Property Details
-              </h3>
 
-              <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
+
+              {["maxGuests","pricePerNight","bedrooms","beds","washrooms"].map(field => (
+
                 <input
+                  key={field}
+                  name={field}
                   type="number"
-                  placeholder="Max Guests"
-                  value={maxGuests}
-                  onChange={(e) => setMaxGuests(e.target.value)}
-                  className="border rounded-xl p-3 focus:ring-2 focus:ring-rose-400 outline-none"
+                  placeholder={field}
+                  value={form[field]}
+                  onChange={handleChange}
+                  className="border rounded-xl p-3"
                   required
                 />
-                <input
-                  type="number"
-                  placeholder="Price Per Night ₹"
-                  value={pricePerNight}
-                  onChange={(e) => setPricePerNight(e.target.value)}
-                  className="border rounded-xl p-3 focus:ring-2 focus:ring-rose-400 outline-none"
-                  required
-                />
-                <input
-                  type="number"
-                  placeholder="Bedrooms"
-                  value={bedrooms}
-                  onChange={(e) => setBedrooms(e.target.value)}
-                  className="border rounded-xl p-3 focus:ring-2 focus:ring-rose-400 outline-none"
-                  required
-                />
-                <input
-                  type="number"
-                  placeholder="Beds"
-                  value={beds}
-                  onChange={(e) => setBeds(e.target.value)}
-                  className="border rounded-xl p-3 focus:ring-2 focus:ring-rose-400 outline-none"
-                  required
-                />
-                <input
-                  type="number"
-                  placeholder="Washrooms"
-                  value={washrooms}
-                  onChange={(e) => setWashrooms(e.target.value)}
-                  className="border rounded-xl p-3 focus:ring-2 focus:ring-rose-400 outline-none"
-                  required
-                />
-              </div>
+
+              ))}
+
             </div>
 
-            {/* IMAGE SECTION */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold border-b pb-2">
-                Upload Images
-              </h3>
+            {/* IMAGE UPLOAD */}
 
-              <input
-                hidden
-                ref={imageRef}
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageChange}
-              />
+            <input
+              hidden
+              ref={imageRef}
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleImageChange}
+            />
 
-              <div
-                onClick={() => imageRef.current.click()}
-                className="border-2 border-dashed border-gray-300 rounded-2xl p-10 text-center cursor-pointer hover:border-rose-400 transition"
-              >
-                Click to Upload Images
-              </div>
+            <div
+              onClick={()=>imageRef.current.click()}
+              className="border-2 border-dashed p-10 text-center cursor-pointer"
+            >
+              Click to Upload Images
+            </div>
 
-              {/* Preview */}
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
-                {images.map((file, idx) => (
-                  <div
-                    key={idx}
-                    className="relative h-28 rounded-xl overflow-hidden shadow"
+            <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
+
+              {preview.map((img,idx)=>(
+
+                <div
+                  key={idx}
+                  className="relative aspect-square rounded-xl overflow-hidden"
+                >
+
+                  <LazyLoadImage
+                    src={img.url}
+                    alt="preview"
+                    className="w-full h-full object-cover"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={()=>removeImage(idx)}
+                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full px-2"
                   >
-                    <LazyLoadImage
-                      src={URL.createObjectURL(file)}
-                      alt="preview"
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(idx)}
-                      className="absolute top-1 right-1 bg-black/60 text-white rounded-full px-2 text-sm"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
+                    ✕
+                  </button>
+
+                </div>
+
+              ))}
+
             </div>
 
-            {/* SUBMIT */}
             <button
               type="submit"
-              className="w-full bg-rose-500 hover:bg-rose-600 text-white py-3 rounded-2xl font-semibold text-lg transition"
+              disabled={loading}
+              className="w-full bg-rose-500 text-white py-3 rounded-2xl"
             >
-              Publish Listing
+              {loading ? "Publishing..." : "Publish Listing"}
             </button>
 
           </form>
+
         </div>
+
       </div>
+
     </>
+
   );
+
 }
 
-export default ListingCreate;
+export default React.memo(ListingCreate);

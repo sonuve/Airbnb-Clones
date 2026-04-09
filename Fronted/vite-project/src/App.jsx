@@ -14,6 +14,9 @@ const EditListings=React.lazy(()=>import("./Pages/EditListings"))
 const ProtectedRoute=React.lazy(()=>import("./Components/ProtectedRoute"))
 import { useSelector } from "react-redux";
 import { useSocket } from "./Socket/SocketManager";
+import OAuthSuccess from "./Pages/OAuthSuccess";
+import ForgotPassword from "./Pages/ForgotPassword";
+import ResetPassword from "./Pages/ResetPassword";
 const HostBookingDetails=React.lazy(()=>import("./Pages/HostBookingDetails"))
 
 function App() {
@@ -31,6 +34,10 @@ function App() {
       <Route path="/room/:id" element={<Room />} />
       <Route path="/search/hotel" element={<SearchPages />} />
       <Route path="/payment-success" element={<Payments />} />
+      <Route path="/oauth-success" element={<OAuthSuccess />} />
+      <Route path="/forgot" element={<ForgotPassword />} />
+      <Route path="/reset" element={<ResetPassword />} />
+      
       
 
       {/* 🔐 Protected Routes */}

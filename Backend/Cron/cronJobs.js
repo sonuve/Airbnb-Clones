@@ -5,7 +5,7 @@ import { completeExpiredBookings } from "../Utile/CompleteBooking.js";
 console.log("✅ Booking completion cron started");
 
 export const timestamps = cron.schedule(
-    "5 1 * * *", // runs daily at 1:05 AM
+    "2 1 * * *", // run daily 
     async() => {
         try {
             console.log(`🕒 Cron triggered at ${new Date().toISOString()}`);

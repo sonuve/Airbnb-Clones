@@ -295,6 +295,7 @@ export const getCityWiseListings = async(req, res) => {
             mumbai,
             delhi,
             vapi,
+            Rajasthan,
             explore
         ] = await Promise.all([
 
@@ -315,6 +316,11 @@ export const getCityWiseListings = async(req, res) => {
 
             Listing.find({
                 "location.city": { $regex: "^vapi$", $options: "i" },
+                isAvailable: true,
+            }).limit(8).lean(),
+
+            Listing.find({
+                "location.city": { $regex: "^Rajasthan$", $options: "i" },
                 isAvailable: true,
             }).limit(8).lean(),
 
@@ -345,6 +351,11 @@ export const getCityWiseListings = async(req, res) => {
                     title: "Popular hotel in Vapi",
                     city: "Vapi",
                     listings: vapi,
+                },
+                {
+                    title: "Popular hotel in Rajasthan ",
+                    city: "Rajasthan",
+                    listings: Rajasthan,
                 },
             ],
             explore, // optional if you want to send it

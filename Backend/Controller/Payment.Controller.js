@@ -155,8 +155,11 @@ export const verifyPayment = async(req, res) => {
         payment.status = "PAID";
         await payment.save();
 
-        payment.booking.status = "confirmed";
-        await payment.booking.save();
+        // payment.booking.status = "confirmed";
+        // await payment.booking.save();
+        await Booking.findByIdAndUpdate(
+            payment.booking._id, { status: "confirmed" }, { new: true }
+        );
 
         // ⚡ Cache result
         await client.set(cacheKey, "PAID", { EX: 3600 });

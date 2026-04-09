@@ -3,7 +3,7 @@ import { addReview, getReviewsByListing } from '../Controller/Comment.Controller
 import { authenticateUser } from '../MiddleWare/userAutho.js';
 const router = express.Router();
 
-router.post("/comment/:id", authenticateUser, addReview);
+router.post("/comment/:listingId", authenticateUser, addReview);
 router.get("/comments/:id", getReviewsByListing);
 
 export default router;

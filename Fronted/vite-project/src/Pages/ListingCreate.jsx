@@ -236,6 +236,8 @@ function ListingCreate() {
               <option>Flat</option>
               <option>Farm House</option>
               <option>Cabin</option>
+              <option>Pool House</option>
+
 
             </select>
 

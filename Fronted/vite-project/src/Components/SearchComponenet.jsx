@@ -34,10 +34,10 @@ function SearchComponenet({ item, savedPosts, handleSave }) {
         </button>
 
         {/* Rating */}
-        <div className="absolute bottom-3 left-3 bg-white px-2 py-1 rounded flex items-center text-sm font-medium shadow">
+        {/* <div className="absolute bottom-3 left-3 bg-white px-2 py-1 rounded flex items-center text-sm font-medium shadow">
           <FaStar className="text-yellow-500 mr-1" />
           {item.rating || "4.5"}
-        </div>
+        </div> */}
 
       </div>
 

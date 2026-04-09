@@ -1,8 +1,9 @@
 import express from 'express';
-import { getUserProfile, login, logout, profileUpdate, savePost, signup } from '../Controller/User.Controller.js';
+import { forgotPassword, getUserProfile, login, logout, profileUpdate, resetPassword, savePost, signup } from '../Controller/User.Controller.js';
 import { authenticateUser } from '../MiddleWare/userAutho.js';
 import upload from '../Utile/Multer.js';
 import apiLimite from '../MiddleWare/rateLimites.js';
+import passport from "passport";
 
 const router = express.Router();
 
@@ -12,5 +13,30 @@ router.get("/logout", logout);
 router.get("/profile", authenticateUser, getUserProfile);
 router.post("/profile/update", authenticateUser, upload.single("profileImage"), profileUpdate);
 router.post("/save/:id", authenticateUser, savePost);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
+
+router.get("/google",
+    passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+router.get("/google/callback",
+    passport.authenticate("google", { session: false }),
+    (req, res) => {
+
+        const { token, user } = req.user;
+
+        // 🍪 Set cookie (same as your login)
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            maxAge: 24 * 60 * 60 * 1000,
+        });
+
+        // 👉 Redirect to frontend
+        res.redirect(`http://localhost:5173/oauth-success?token=${token}`);
+    }
+);
 
 export default router;

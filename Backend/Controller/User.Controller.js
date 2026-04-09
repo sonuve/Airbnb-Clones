@@ -2,8 +2,19 @@ import User from "../Model/User.Model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 import client from "../Confige/Redis.js";
 dotenv.config();
+
+
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
 
 export const signup = async(req, res) => {
     try {
@@ -57,6 +68,58 @@ export const signup = async(req, res) => {
     }
 };
 
+// export const login = async(req, res) => {
+//     try {
+//         const { email, password } = req.body;
+
+//         if (!email || !password) {
+//             return res.status(400).json({ message: "All fields are required" });
+//         }
+
+//         const user = await User.findOne({ email }).select("+password");
+//         if (!user) {
+//             return res.status(401).json({
+//                 message: "Invalid email or password",
+//             });
+//         }
+//         const ipassword = await bcrypt.compare(password, user.password);
+
+//         if (!ipassword) {
+//             return res.status(401).json({
+//                 message: "Invalid email or password",
+//             });
+//         }
+
+//         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+//             expiresIn: "1d",
+//         });
+
+//         res.cookie("token", token, {
+//             httpOnly: true,
+//             secure: false, // IMPORTANT for localhost
+//             sameSite: "lax",
+//             maxAge: 24 * 60 * 60 * 1000, // 1 day
+//         });
+
+//         return res.status(200).json({
+//             message: "User logged in successfully",
+//             success: true,
+//             token,
+//             user: {
+//                 id: user._id,
+//                 name: user.name,
+//                 email: user.email,
+//             },
+//         });
+//     } catch (error) {
+//         res.status(500).json({
+//             message: "Login failed",
+//             error: error.message,
+//         });
+//     }
+// };
+
+
 export const login = async(req, res) => {
     try {
         const { email, password } = req.body;
@@ -66,28 +129,37 @@ export const login = async(req, res) => {
         }
 
         const user = await User.findOne({ email }).select("+password");
+
         if (!user) {
             return res.status(401).json({
                 message: "Invalid email or password",
             });
         }
-        const ipassword = await bcrypt.compare(password, user.password);
 
-        if (!ipassword) {
+        // 🔥 FIX: handle Google users
+        if (!user.password) {
+            return res.status(400).json({
+                message: "Please login with Google",
+            });
+        }
+
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
             return res.status(401).json({
                 message: "Invalid email or password",
             });
         }
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-            expiresIn: "1d",
-        });
+        const token = jwt.sign({ id: user._id },
+            process.env.JWT_SECRET, { expiresIn: "1d" }
+        );
 
         res.cookie("token", token, {
             httpOnly: true,
-            secure: false, // IMPORTANT for localhost
+            secure: false,
             sameSite: "lax",
-            maxAge: 24 * 60 * 60 * 1000, // 1 day
+            maxAge: 24 * 60 * 60 * 1000,
         });
 
         return res.status(200).json({
@@ -100,6 +172,7 @@ export const login = async(req, res) => {
                 email: user.email,
             },
         });
+
     } catch (error) {
         res.status(500).json({
             message: "Login failed",
@@ -107,6 +180,87 @@ export const login = async(req, res) => {
         });
     }
 };
+
+export const forgotPassword = async(req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000);
+
+        user.resetOtp = otp;
+        user.resetOtpExpire = Date.now() + 10 * 60 * 1000;
+
+        await user.save();
+
+        // ✅ SEND EMAIL HERE
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: "Password Reset OTP",
+            html: `
+                <h2>Your OTP is: ${otp}</h2>
+                <p>This OTP will expire in 10 minutes</p>
+            `,
+        });
+
+        return res.status(200).json({
+            message: "OTP sent successfully",
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: "Error sending OTP",
+            error: error.message,
+        });
+    }
+};
+
+export const resetPassword = async(req, res) => {
+    try {
+        const { email, otp, password } = req.body;
+
+        const user = await User.findOne({
+            email,
+            resetOtp: otp,
+            resetOtpExpire: { $gt: Date.now() },
+        });
+
+        if (!user) {
+            return res.status(400).json({
+                message: "Invalid or expired OTP",
+            });
+        }
+
+        // 🔐 Hash new password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        user.password = hashedPassword;
+        user.resetOtp = undefined;
+        user.resetOtpExpire = undefined;
+
+        // ✅ SAVE FIRST
+        await user.save();
+
+        // 🔥 THEN CLEAR CACHE
+        await client.del(`user:profile:${user._id}`);
+
+        return res.json({ message: "Password reset successful" });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 
 export const logout = async(req, res) => {
     res.clearCookie("token", {
@@ -167,7 +321,7 @@ export const getUserProfile = async(req, res) => {
 };
 
 export const profileUpdate = async(req, res) => {
-    const userId = req.user;
+    const userId = req.user._id;
     const { name, email } = req.body;
 
 
@@ -210,7 +364,7 @@ export const profileUpdate = async(req, res) => {
 // savePost.controller.js
 export const savePost = async(req, res) => {
     try {
-        const userId = req.user;
+        const userId = req.user._id;
         const postId = req.params.id;
         const cacheKey = `user:savepost:${userId}`;
 

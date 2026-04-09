@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, memo } from "react";
+import React, { useState, useEffect, useRef, useCallback, memo, Suspense } from "react";
 import { FaSearch } from "react-icons/fa";
 import { CgProfile } from "react-icons/cg";
 import { GiHamburgerMenu } from "react-icons/gi";
@@ -463,8 +463,16 @@ function Nav() {
       )}
 
      {/* CATEGORY */}
-<div className="mt-20 min-h-[80px]">
-  <Category />
+     <div className="sticky top-[80px] bg-white z-40 mt-20">
+  <div className="overflow-x-auto overflow-y-hidden scrollbar-hide">
+    <Suspense
+      fallback={
+        <div className="text-center py-4">Loading categories...</div>
+      }
+    >
+      <Category />
+    </Suspense>
+  </div>
 </div>
 
 {/* FEATURED HOTELS SLIDER */}

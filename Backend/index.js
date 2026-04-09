@@ -15,6 +15,10 @@ import { initSocket } from "./Socketio/Socket.js";
 import { timestamps } from "./Cron/cronJobs.js";
 import { bookingClean } from "./Cron/bookingCleanup.cron.js";
 import apiLimite from "./MiddleWare/rateLimites.js";
+import passport from "passport";
+import "./Confige/passport.js";
+
+
 
 dotenv.config();
 
@@ -24,10 +28,13 @@ Cashfree.XClientSecret = process.env.CASHFREE_SECRET_KEY;
 Cashfree.Environment = "TEST";
 
 const app = express();
+app.use(passport.initialize());
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
 app.use(cookieParser());
 app.use(express.static("public")); // Serve static files from the "public" directory
+
+
 
 
 

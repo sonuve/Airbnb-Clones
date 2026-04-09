@@ -27,9 +27,9 @@ function Room() {
   const { id } = useParams();
   const { listings } = useSelector((state) => state.listing);
   const { user } = useSelector((state) => state.auth);
-  const { bookings } = useSelector((state) => state.Booking);
-
-  // console.log(bookings);
+  const  bookings  = useSelector((state) => state.Booking.Bookings);
+  console.log("bookings",bookings);
+ 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -37,6 +37,8 @@ function Room() {
     () => listings?.find((item) => item._id === id),
     [listings, id]
   );
+
+  console.log(listing);
 
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
@@ -60,65 +62,98 @@ function Room() {
     return diff > 0 ? diff : 0;
   }, [checkIn, checkOut]);
 
-  // review permission
-  const canReview =
-    user &&
-    bookings?.some((b) => {
-      return (
-        b.listing?._id === listing?._id &&
-        b.status === "completed" &&
-        !b.reviewed
-      );
-    });
+
 
   useEffect(() => {
     if (!user) return;
-
-    const controller = new AbortController();
-
+  
     const fetchBookings = async () => {
       try {
-        const res = await axios.get("http://localhost:3000/api/booking/my", {
-          withCredentials: true,
-          signal: controller.signal,
-        });
-
+        const res = await axios.get(
+          "http://localhost:3000/api/booking/my",
+          { withCredentials: true }
+        );
+  
         dispatch(setBooking(res.data.bookings));
       } catch (err) {
-        if (err.name !== "CanceledError") {
-          console.log(err);
-        }
+        console.log(err);
       }
     };
-
+  
+    // run once immediately
     fetchBookings();
-
-    return () => controller.abort();
+  
+    // run every 20 seconds
+    const interval = setInterval(fetchBookings, 20000);
+  
+    return () => clearInterval(interval);
   }, [user, dispatch]);
 
+
+
+    // review permission
+  
+    const canReview =
+    !!user &&
+    !!listing &&
+    Array.isArray(bookings) &&
+    bookings.some((b) => {
+      return (
+        b?.listing?._id?.toString() === listing?._id?.toString() &&
+        b?.status === "completed" &&
+        b?.reviewed === false &&
+        b?.user?.toString() === user?.id?.toString()
+      );
+    });
+  
+  console.log("canReview:", canReview);
+
   //Show the review box only if the user has stayed at the hotel
-  useEffect(() => {
-    if (!listing?._id) return;
+  // useEffect(() => {
+  //   if (!listing?._id) return;
 
-    const controller = new AbortController();
+  //   const controller = new AbortController();
 
-    const fetchReviews = async () => {
-      try {
-        const res = await axios.get(
-          `http://localhost:3000/api/review/comments/${listing._id}`,
-          { signal: controller.signal }
-        );
+  //   const fetchReviews = async () => {
+  //     try {
+  //       const res = await axios.get(
+  //         `http://localhost:3000/api/review/comments/${listing._id}`,
+  //         { signal: controller.signal }
+  //       );
 
-        if (res.data.success) {
-          dispatch(setReviews(res.data.reviews));
-        }
-      } catch (error) {}
-    };
+  //       if (res.data.success) {
+  //         dispatch(setReviews(res.data.reviews));
+  //       }
+  //     } catch (error) {}
+  //   };
 
-    fetchReviews();
+  //   fetchReviews();
 
-    return () => controller.abort();
-  }, [listing?._id, dispatch]);
+  //   return () => controller.abort();
+  // }, [listing?._id, dispatch]);
+
+  // const { reviews } = useSelector((state) => state.review);
+
+// Fetch reviews again after user posts comment
+const fetchReviews = async () => {
+  if (!listing?._id) return;
+
+  try {
+    const res = await axios.get(
+      `http://localhost:3000/api/review/comments/${listing._id}`
+    );
+
+    if (res.data.success) {
+      dispatch(setReviews(res.data.reviews));
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+useEffect(() => {
+  if (!listing?._id) return;
+  fetchReviews();
+}, [listing?._id]);
 
   //hotel bookeing function
   const handleReservePayment = async () => {
@@ -250,10 +285,9 @@ function Room() {
     }
   };
 
-  const { reviews } = useSelector((state) => state.review);
-
+  const reviews = useSelector((state) => state.review.reviews || []);
   const reviewsList = useMemo(() => {
-    return reviews.map((rev) => (
+    return reviews?.map((rev) => (
       <div key={rev._id} className="border rounded-xl p-4 bg-white shadow-sm">
         <div className="flex items-center gap-3 mb-2">
           <img
@@ -352,7 +386,7 @@ function Room() {
           <div className="lg:col-span-7 flex flex-col gap-6">
             {/* Title & Details */}
             <h2 className="font-bold text-xl md:text-2xl">
-              Entre guest {listing?.location?.address} in{" "}
+              Enter {listing?.title} in{" "}
               {listing?.location?.city}, {listing?.location?.country}{" "}
             </h2>
             <div className="flex flex-wrap gap-3 text-sm md:text-base text-gray-600">
@@ -556,8 +590,8 @@ function Room() {
                   </label>
                   <select
                     value={guests}
-                    onChange={(e) => setGuests(e.target.value)}
-                    className="w-full text-sm outline-none"
+                    onChange={(e) => setGuests(Number(e.target.value))}
+                      className="w-full text-sm outline-none"
                   >
                     {[...Array(listing.maxGuests)].map((_, i) => (
                       <option key={i} value={i + 1}>
@@ -629,6 +663,39 @@ function Room() {
 
         {/* ================= Things to know ================= */}
         <div className="mt-14">
+          {/* ================= Map ================= */}
+<div className="mt-14">
+  <h2 className="text-2xl font-semibold mb-6">Where you'll be</h2>
+
+  {listing?.location ? (
+    <>
+      <iframe
+        title="map"
+        width="100%"
+        height="400"
+        className="rounded-xl border"
+        loading="lazy"
+        allowFullScreen
+        src={`https://www.google.com/maps?q=${encodeURIComponent(
+          `${listing.location.address}, ${listing.location.city}, ${listing.location.state}, ${listing.location.country}`
+        )}&z=15&output=embed`}
+      ></iframe>
+
+      <a
+        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+          `${listing.location.address}, ${listing.location.city}`
+        )}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-500 underline mt-2 inline-block"
+      >
+        Get Directions
+      </a>
+    </>
+  ) : (
+    <p className="text-gray-500">Location not available</p>
+  )}
+</div>
           <h2 className="text-2xl font-semibold mb-6">Things to know</h2>
 
           <div className="grid md:grid-cols-3 gap-8 text-gray-700">
@@ -678,38 +745,6 @@ function Room() {
         {/* ================= Reviews ================= */}
         <div className="mt-14 border-t pt-8">
           <h3 className="text-2xl font-semibold mb-6">Reviews</h3>
-
-          {/* Show reviews */}
-          {/* {reviews.length > 0 ? (
-            <div className="space-y-4">
-              {reviews.map((rev) => (
-                <div
-                  key={rev._id}
-                  className="border rounded-xl p-4 bg-white shadow-sm"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <img
-                      src={rev.user?.avatar || "https://i.pravatar.cc/40"}
-                      loading="lazy"
-                      className="w-8 h-8 rounded-full"
-                      alt="user"
-                    />
-                    <div>
-                      <p className="font-semibold text-sm">{rev.user?.name}</p>
-                      <p className="text-xs text-gray-500">
-                        ⭐ {rev.rating} / 5
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="text-gray-700 text-sm">{rev.comment}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 text-sm">No reviews yet</p>
-          )} */}
-          {/* Show reviews */}
           {reviews.length > 0 ? (
             <div className="space-y-4">{reviewsList}</div>
           ) : (

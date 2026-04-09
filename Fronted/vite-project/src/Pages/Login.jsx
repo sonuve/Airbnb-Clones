@@ -71,6 +71,10 @@ function Login() {
 
   },[form,dispatch,navigate]);
 
+  const handleGoogleLogin = () => {
+    window.open("http://localhost:3000/api/users/google", "_self");
+    };
+
   return (
 
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 to-gray-100 px-4">
@@ -82,7 +86,7 @@ function Login() {
         <div className="text-center mb-6">
 
           <h1 className="text-3xl font-bold text-[#fe395c]">
-            StayFinder
+            Airbnb
           </h1>
 
           <p className="text-gray-500 text-sm mt-1">
@@ -200,13 +204,11 @@ function Login() {
         {/* Google login */}
 
         <button
+          onClick={handleGoogleLogin}
           className="w-full border border-gray-300 py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-50 transition"
         >
-
-          <FcGoogle size={20}/>
-
-          Continue with Google
-
+              <FcGoogle size={20}/>
+              Continue with Google
         </button>
 
         {/* Signup */}

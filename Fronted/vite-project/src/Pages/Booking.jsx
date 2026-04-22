@@ -11,7 +11,11 @@ const Nav2 = React.lazy(() => import("../Components/Nav2.jsx"));
 function Booking() {
   const dispatch = useDispatch();
   const bookedHotel = useSelector((state) => state.Booking.Bookings);
-  const safeBookings = useMemo(() => Array.isArray(bookedHotel) ? bookedHotel : [], [bookedHotel]);
+  const safeBookings = useMemo(() => {
+    return Array.isArray(bookedHotel)
+      ? bookedHotel.filter(b => b && b.listing)
+      : [];
+  }, [bookedHotel]);
 
   // Dropdown state per booking
   const [openMenuId, setOpenMenuId] = useState(null);

@@ -6,6 +6,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../Redux/authoSlice";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function Login() {
 
@@ -43,7 +44,7 @@ function Login() {
       setLoading(true);
 
       const res = await axios.post(
-        "http://localhost:3000/api/users/login",
+        `${API_URL}/api/users/login`,
         form,
         { withCredentials:true }
       );
@@ -72,7 +73,7 @@ function Login() {
   },[form,dispatch,navigate]);
 
   const handleGoogleLogin = () => {
-    window.open("http://localhost:3000/api/users/google", "_self");
+    window.open(`${API_URL}/api/users/google`, "_self");
     };
 
   return (

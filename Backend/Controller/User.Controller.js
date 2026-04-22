@@ -264,12 +264,16 @@ export const resetPassword = async(req, res) => {
 
 
 export const logout = async(req, res) => {
+    const isProd = process.env.NODE_ENV === "development";
+
     res.clearCookie("token", {
         httpOnly: true,
-        secure: true, // REQUIRED on HTTPS (Render uses HTTPS)
-        sameSite: "None",
+        secure: isProd,
+        sameSite: isProd ? "None" : "lax",
+        path: "/",
     });
-    res.status(200).json({
+
+    return res.status(200).json({
         success: true,
         message: "Logout successful",
     });

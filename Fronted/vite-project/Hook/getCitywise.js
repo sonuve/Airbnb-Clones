@@ -2,6 +2,7 @@ import axios from "axios";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { getCity } from "../Redux/CityWise";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const useGetCityListings = () => {
     const dispatch = useDispatch();
@@ -10,7 +11,7 @@ const useGetCityListings = () => {
         const fetchData = async() => {
             try {
                 const res = await axios.get(
-                    "http://localhost:3000/api/listing/city", { withCredentials: true }
+                    `${API_URL}/api/listing/city`, { withCredentials: true }
                 );
 
 

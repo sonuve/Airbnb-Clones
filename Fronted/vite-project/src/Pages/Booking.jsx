@@ -5,7 +5,7 @@ import { setBooking } from "../../Redux/Booking";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { LazyLoadImage } from "react-lazy-load-image-component";
-
+const API_URL = import.meta.env.VITE_API_URL;
 const Nav2 = React.lazy(() => import("../Components/Nav2.jsx"));
 
 function Booking() {
@@ -19,7 +19,7 @@ function Booking() {
   // ================= FETCH BOOKINGS =================
   const fetchMyBookings = useCallback(async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/booking/my", { withCredentials: true });
+      const res = await axios.get(`${API_URL}/api/booking/my`, { withCredentials: true });
       if (res.data.success) dispatch(setBooking(res.data.bookings));
     } catch (error) {
       toast.error("Failed to fetch bookings");
@@ -29,7 +29,7 @@ function Booking() {
   // ================= CANCEL BOOKING =================
   const cancelBooking = useCallback(async (bookingId) => {
     try {
-      await axios.put(`http://localhost:3000/api/booking/${bookingId}`, {}, { withCredentials: true });
+      await axios.put(`${API_URL}/api/booking/${bookingId}`, {}, { withCredentials: true });
       toast.success("Booking cancelled successfully");
       fetchMyBookings();
     } catch (error) {
@@ -42,7 +42,7 @@ function Booking() {
     const confirmDelete = window.confirm("Are you sure you want to delete this booking?");
     if (!confirmDelete) return;
     try {
-      const res = await axios.delete(`http://localhost:3000/api/booking/delete/${bookingId}`, { withCredentials: true });
+      const res = await axios.delete(`${API_URL}/api/booking/delete/${bookingId}`, { withCredentials: true });
       if (res.data.success) {
         toast.success("Booking deleted");
         fetchMyBookings();

@@ -330,7 +330,7 @@ function Nav() {
                   onClick={async (e) => {
                     e.stopPropagation(); // prevent parent click
                     try {
-                      const res = await axios.delete(`http://localhost:3000/api/notifications/${n._id}`, { withCredentials: true });
+                      const res = await axios.delete(`${API_URL}/api/notifications/${n._id}`, { withCredentials: true });
                       if (res.data.success) {
                         toast.success("Notification deleted");
                         // Ideally dispatch action to remove from Redux
@@ -435,26 +435,50 @@ function Nav() {
             </button>
 
             <form
-              onSubmit={handleSubmit}
-              className="relative w-full flex-1"
-            >
+  onSubmit={handleSubmit}
+  className="relative w-full flex-1"
+>
 
-              <input
-                autoFocus
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search hotels..."
-                className="w-full border border-gray-300 rounded-full pl-4 pr-12 py-2 focus:outline-none focus:ring-2 focus:ring-[#fe395c]"
-              />
+  <input
+    autoFocus
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    placeholder="Search hotels..."
+    className="w-full border border-gray-300 rounded-full pl-4 pr-12 py-2 focus:outline-none focus:ring-2 focus:ring-[#fe395c]"
+  />
 
-              <button
-                disabled={loading}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#fe395c] p-2 rounded-full text-white"
-              >
-                {loading ? "..." : <FaSearch size={14} />}
-              </button>
+  <button
+    disabled={loading}
+    className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#fe395c] p-2 rounded-full text-white"
+  >
+    {loading ? "..." : <FaSearch size={14} />}
+  </button>
 
-            </form>
+  {/* ✅ ADD THIS BLOCK (VERY IMPORTANT) */}
+  {suggestions.length > 0 && (
+    <div className="absolute top-[50px] left-0 right-0 bg-white shadow-lg rounded-xl max-h-60 overflow-y-auto z-[9999] border">
+
+      {suggestions.map((item) => (
+        <div
+          key={item._id}
+          className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-sm"
+          onClick={() => {
+            navigate(`/room/${item._id}`);
+            setSearch("");
+            setSuggestions([]);
+            setShowMobileSearch(false); // close popup
+          }}
+        >
+          <p className="font-medium">{item.title}</p>
+          <p className="text-xs text-gray-500">
+            {item.location?.city}, {item.location?.state}
+          </p>
+        </div>
+      ))}
+
+    </div>
+  )}
+</form>
 
           </div>
 

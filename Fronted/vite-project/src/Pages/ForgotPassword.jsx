@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -14,7 +15,7 @@ function ForgotPassword() {
       setLoading(true);
   
       await axios.post(
-        "http://localhost:3000/api/users/forgot-password",
+        `${API_URL}/api/users/forgot-password`,
         { email }
       );
   

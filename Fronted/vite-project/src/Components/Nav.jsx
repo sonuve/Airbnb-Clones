@@ -14,7 +14,7 @@ const Category= React.lazy(()=>import("./Category.jsx")) ;
 const NotificationListener= React.lazy(()=>import("./NotificationListener.jsx")) ;
 import { LazyLoadImage } from "react-lazy-load-image-component";
 const HotelSlider =React.lazy(()=>import("./HotelSlider.jsx")) ;
-
+const API_URL = import.meta.env.VITE_API_URL;
 function Nav() {
 
   const [showPOP, setShowPOP] = useState(false);
@@ -73,7 +73,7 @@ function Nav() {
       setLoading(true);
 
       const res = await axios.get(
-        "http://localhost:3000/api/listing/search",
+        `${API_URL}/api/listing/search`,
         {
           params: { title: trimmedSearch },
           withCredentials: true
@@ -120,7 +120,7 @@ function Nav() {
       try {
 
         const res = await axios.get(
-          "http://localhost:3000/api/listing/search",
+          `${API_URL}/api/listing/search`,
           {
             params: { title: search },
             signal: controller.signal
@@ -153,7 +153,7 @@ function Nav() {
     try {
 
       const res = await axios.get(
-        "http://localhost:3000/api/users/logout",
+        `${API_URL}/api/users/logout`,
         { withCredentials: true }
       );
 

@@ -4,5 +4,7 @@ const SOCKET_URL = "https://airbnb-clones.onrender.com";
 
 export const socket = io(SOCKET_URL, {
     withCredentials: true,
-    autoConnect: false, // important
+    autoConnect: false,
+    transports: ["websocket", "polling"],
+    reconnection: true,
 });

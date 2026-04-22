@@ -72,7 +72,7 @@ function Booking() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {safeBookings.map((booking) => {
-              const showCancel = booking.status === "reserved" || booking.status === "paid";
+              const showCancel = booking?.status === "reserved" || booking?.status === "paid";
 
               return (
                 <div key={booking._id} className="bg-white rounded-2xl shadow-md hover:shadow-xl transition duration-300 overflow-hidden flex flex-col relative">

@@ -426,8 +426,7 @@ function Nav() {
       {/* MOBILE SEARCH */}
       {showMobileSearch && (
 
-        <div className="fixed inset-0 bg-white z-[60] p-4 md:hidden min-h-screen">
-
+          <div className="fixed inset-0 bg-white z-[9999] p-4 md:hidden min-h-screen overflow-visible">
           <div className="flex items-center gap-3">
 
             <button onClick={() => setShowMobileSearch(false)}>

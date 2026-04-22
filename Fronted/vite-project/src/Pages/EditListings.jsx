@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { updateListing } from "../../Redux/Listing";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function EditListings() {
 
@@ -108,7 +109,7 @@ function EditListings() {
       );
 
       const res = await axios.put(
-        `http://localhost:3000/api/listing/update/listing/${id}`,
+        `${API_URL}/api/listing/update/listing/${id}`,
         data,
         {
           headers: {

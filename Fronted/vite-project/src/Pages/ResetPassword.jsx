@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "react-hot-toast";
 import { IoMdEye, IoIosEyeOff } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
-
+const API_URL = import.meta.env.VITE_API_URL;
 function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -30,7 +30,7 @@ function ResetPassword() {
       setLoading(true);
   
       await axios.post(
-        "http://localhost:3000/api/users/reset-password",
+        `${API_URL}/api/users/reset-password`,
         form
       );
   

@@ -4,7 +4,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { setSavedPosts } from "../../Redux/withList.js";
 const CityListing =React.lazy(()=>import("./CityListing.jsx")) ;
-
+const API_URL = import.meta.env.VITE_API_URL;
 
 
 function ListingsComponent() {
@@ -25,7 +25,7 @@ function ListingsComponent() {
   const handleSave = useCallback(async (id) => {
     try {
       const res = await axios.post(
-        `http://localhost:3000/api/users/save/${id}`,
+        `${API_URL}/api/users/save/${id}`,
         {},
         { withCredentials: true }
       );

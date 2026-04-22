@@ -24,7 +24,7 @@ function Payments() {
     };
   
     verify();
-  }, []);
+  }, [location.search, navigate]);
   
 
   return (

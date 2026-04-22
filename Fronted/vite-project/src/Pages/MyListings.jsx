@@ -5,6 +5,7 @@ import { deleteListing, getUserListings } from "../../Redux/Listing";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Nav2 = React.lazy(() => import("../Components/Nav2.jsx"));
 
@@ -26,7 +27,7 @@ function MyListings() {
     try {
 
       const res = await axios.get(
-        "http://localhost:3000/api/listing/my/listings",
+        `${API_URL}/api/listing/my/listings`,
         { withCredentials: true }
       );
 
@@ -60,7 +61,7 @@ function MyListings() {
     try {
 
       const res = await axios.delete(
-        `http://localhost:3000/api/listing/delete/${listingId}`,
+        `${API_URL}/api/listing/delete/${listingId}`,
         { withCredentials: true }
       );
 

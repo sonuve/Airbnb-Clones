@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../Redux/authoSlice";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function OAuthSuccess() {
   const [params] = useSearchParams();
@@ -16,7 +17,7 @@ function OAuthSuccess() {
       localStorage.setItem("token", token);
 
       // 🔥 Fetch user profile
-      fetch("http://localhost:3000/api/users/profile", {
+      fetch(`${API_URL}/api/users/profile`, {
         credentials: "include",
       })
         .then(res => res.json())

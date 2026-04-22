@@ -5,12 +5,19 @@ let io;
 export const initSocket = (server) => {
     io = new Server(server, {
         cors: {
-            origin: ["http://localhost:5173",
-                "https://airbnb-clones-1.onrender.com"
-            ],
-
-            credentials: true,
-        },
+            origin: (origin, callback) => {
+                const allowedOrigins = [
+                    "http://localhost:5173",
+                    "https://airbnb-clones-1.onrender.com"
+                ];
+                if (!origin || allowedOrigins.includes(origin)) {
+                    callback(null, true);
+                } else {
+                    callback(new Error("CORS not allowed"));
+                }
+            },
+            credentials: true
+        }
     });
 
     io.on("connection", (socket) => {

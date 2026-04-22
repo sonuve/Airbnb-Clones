@@ -5,10 +5,17 @@ let io;
 export const initSocket = (server) => {
     io = new Server(server, {
         cors: {
-            origin: [
-                "http://localhost:5173",
-                "https://airbnb-clones-1.onrender.com"
-            ],
+            origin: (origin, callback) => {
+                const allowedOrigins = [
+                    "http://localhost:5173",
+                    "https://airbnb-clones-1.onrender.com"
+                ];
+                if (!origin || allowedOrigins.includes(origin)) {
+                    callback(null, true);
+                } else {
+                    callback(new Error("CORS not allowed"));
+                }
+            },
             credentials: true
         }
     });
@@ -26,10 +33,13 @@ export const initSocket = (server) => {
         });
     });
 
+
     return io;
 };
 
 export const getIO = () => {
-    if (!io) throw new Error("Socket.io not initialized");
+    if (!io) {
+        throw new Error("Socket.io not initialized");
+    }
     return io;
 };

@@ -14,7 +14,7 @@ import { addListing } from "../../Redux/Listing";
 import { useNavigate } from "react-router-dom";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import imageCompression from "browser-image-compression";
-
+const API_URL = import.meta.env.VITE_API_URL;
 const Nav2 = React.lazy(() => import("../Components/Nav2.jsx"));
 
 function ListingCreate() {
@@ -136,7 +136,7 @@ function ListingCreate() {
       images.forEach(img => data.append("images",img));
 
       const res = await axios.post(
-        "http://localhost:3000/api/listing/add/listing",
+        `${API_URL}/api/listing/add/listing`,
         data,
         {
           headers:{ "Content-Type":"multipart/form-data" },

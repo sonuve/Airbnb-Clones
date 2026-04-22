@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
-
+const API_URL = import.meta.env.VITE_API_URL;
 function CommentsPages({ listingId, onReviewAdded }) {
   const [comment, setComment] = useState("");
   const [rating, setRating] = useState(5);
@@ -17,7 +17,7 @@ function CommentsPages({ listingId, onReviewAdded }) {
       setLoading(true);
 
       await axios.post(
-        `http://localhost:3000/api/review/comment/${listingId}`,
+        `${API_URL}/api/review/comment/${listingId}`,
         { comment, rating },
         { withCredentials: true,
           headers: {

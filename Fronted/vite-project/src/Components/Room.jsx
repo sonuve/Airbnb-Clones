@@ -22,6 +22,7 @@ const CommentsPages = React.lazy(() => import("../Pages/CommentsPages.jsx"));
 import { setBooking } from "../../Redux/Booking.js";
 import { setReviews } from "../../Redux/reviewSlice.js";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function Room() {
   const { id } = useParams();
@@ -70,7 +71,7 @@ function Room() {
     const fetchBookings = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:3000/api/booking/my",
+          `${API_URL}/api/booking/my`,
           { withCredentials: true }
         );
   
@@ -140,7 +141,7 @@ const fetchReviews = async () => {
 
   try {
     const res = await axios.get(
-      `http://localhost:3000/api/review/comments/${listing._id}`
+      `${API_URL}/api/review/comments/${listing._id}`
     );
 
     if (res.data.success) {
@@ -166,7 +167,7 @@ useEffect(() => {
       setBookingLoading(true);
 
       const res = await axios.post(
-        `http://localhost:3000/api/booking/reserve/${listing._id}`,
+        `${API_URL}/api/booking/reserve/${listing._id}`,
         {
           checkIn,
           checkOut,
@@ -198,7 +199,7 @@ useEffect(() => {
     const checkAvailability = async () => {
       setChecking(true);
       try {
-        const res = await axios.get("http://localhost:3000/api/booking/check", {
+        const res = await axios.get(`${API_URL}/api/booking/check`, {
           params: {
             listingId: listing._id,
             checkIn,
@@ -235,7 +236,7 @@ useEffect(() => {
       await loadCashfreeSDK();
 
       const res = await axios.post(
-        "http://localhost:3000/api/payment/create",
+        `${API_URL}/api/payment/create`,
         { bookingId },
         { withCredentials: true }
       );
@@ -258,7 +259,7 @@ useEffect(() => {
           toast.success("Payment completed successfully!");
 
           const bookingRes = await axios.get(
-            "http://localhost:3000/api/booking/my",
+            `${API_URL}/api/booking/my`,
             { withCredentials: true }
           );
 

@@ -7,6 +7,7 @@ import React, {
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { LazyLoadImage } from "react-lazy-load-image-component";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Nav2 = React.lazy(() => import("../Components/Nav2.jsx"));
 
@@ -24,7 +25,7 @@ function HostBookingDetails() {
     try {
 
       const res = await axios.get(
-        `http://localhost:3000/api/booking/bookings/${id}`,
+        `${API_URL}/api/booking/bookings/${id}`,
         { withCredentials: true }
       );
 

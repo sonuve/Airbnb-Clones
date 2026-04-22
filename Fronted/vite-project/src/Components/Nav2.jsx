@@ -303,26 +303,50 @@ function Nav2() {
 
       <div className="md:hidden px-4 py-3 bg-gray-50">
 
-        <form onSubmit={handleSubmit} className="relative">
+<form onSubmit={handleSubmit} className="relative">
 
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search hotels..."
-            className="w-full h-12 border border-gray-300 rounded-full pl-4 pr-12 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#fe395c]"
-          />
+  <input
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    placeholder="Search hotels..."
+    className="w-full h-12 border border-gray-300 rounded-full pl-4 pr-12 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#fe395c]"
+  />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="absolute right-1 top-1/2 -translate-y-1/2 bg-[#fe395c] p-2.5 rounded-full text-white hover:bg-[#e63755] transition disabled:opacity-50"
-          >
-            {loading ? "..." : <FaSearch size={14} />}
-          </button>
+  <button
+    type="submit"
+    disabled={loading}
+    className="absolute right-1 top-1/2 -translate-y-1/2 bg-[#fe395c] p-2.5 rounded-full text-white"
+  >
+    {loading ? "..." : <FaSearch size={14} />}
+  </button>
 
-        </form>
+  {/* ✅ ADD THIS (MOBILE SUGGESTIONS) */}
+  {suggestions.length > 0 && (
+    <div className="absolute top-[55px] left-0 right-0 bg-white shadow-lg rounded-xl max-h-60 overflow-y-auto z-[9999] border">
 
-      </div>
+      {suggestions.map((item) => (
+        <div
+          key={item._id}
+          className="px-4 py-3 hover:bg-gray-100 cursor-pointer text-sm"
+          onClick={() => {
+            navigate(`/room/${item._id}`);
+            setSearch("");
+            setSuggestions([]);
+          }}
+        >
+          <p className="font-medium">{item.title}</p>
+          <p className="text-xs text-gray-500">
+            {item.location?.city}, {item.location?.state}
+          </p>
+        </div>
+      ))}
+
+    </div>
+  )}
+
+</form>
+
+</div>
 
     </div>
   );

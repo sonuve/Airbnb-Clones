@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../Redux/authoSlice";
 import { getSearchListings } from "../../Redux/Listing.js";
 import { LazyLoadImage } from "react-lazy-load-image-component";
-
+const API_URL = import.meta.env.VITE_API_URL;
 function Nav2() {
 
   const [showPOP, setShowPOP] = useState(false);
@@ -50,7 +50,7 @@ function Nav2() {
   const handleLogout = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:3000/api/users/logout",
+        `${API_URL}/api/users/logout`,
         { withCredentials: true }
       );
 
@@ -80,7 +80,7 @@ function Nav2() {
       setLoading(true);
 
       const res = await axios.get(
-        "http://localhost:3000/api/listing/search",
+        `${API_URL}/api/listing/search`,
         {
           params: { title: search },
           withCredentials: true
@@ -135,7 +135,7 @@ function Nav2() {
         cancelToken.current = axios.CancelToken.source();
 
         const res = await axios.get(
-          "http://localhost:3000/api/listing/search",
+          `${API_URL}/api/listing/search`,
           {
             params: { title: search },
             cancelToken: cancelToken.current.token

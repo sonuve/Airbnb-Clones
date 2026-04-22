@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import Nav2 from "./Nav2";
 import { setSavedPosts } from "../../Redux/withList.js";
 const SearchComponenet= React.lazy(()=>import("./SearchComponenet.jsx")) ;
+const API_URL = import.meta.env.VITE_API_URL;
 
 function SearchPages() {
   const dispatch = useDispatch();
@@ -18,7 +19,7 @@ function SearchPages() {
     async (id) => {
       try {
         const res = await axios.post(
-          `http://localhost:3000/api/users/save/${id}`,
+          `${API_URL}/api/users/save/${id}`,
           {},
           { withCredentials: true }
         );

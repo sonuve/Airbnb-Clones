@@ -10,7 +10,8 @@ useEffect(() => {
       if (!orderId) return;
   
       await axios.get(
-        `${API_URL}/api/payment/verify/${orderId}`
+        `${API_URL}/api/payment/verify/${orderId}`,
+        { withCredentials: true }
       );
   
       const bookingRes = await axios.get(

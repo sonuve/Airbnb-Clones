@@ -205,7 +205,7 @@ useEffect(() => {
             checkIn,
             checkOut,
           },
-        });
+        },{withCredentials:true});
 
         setAvailable(res.data.available);
       } catch (error) {

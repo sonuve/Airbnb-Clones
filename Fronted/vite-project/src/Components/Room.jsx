@@ -321,64 +321,61 @@ useEffect(() => {
           {listing.location?.city}, {listing.location?.country}
         </p>
 
+      
         {/* ================= Images ================= */}
-        <div className="mt-5">
-          {/* If no images */}
-          {!listing?.images || listing.images.length === 0 ? (
-            <div className="w-full h-[400px] bg-gray-200 rounded-xl flex items-center justify-center text-gray-500">
-              No Images Available
-            </div>
-          ) : (
-            <>
-              {/* ================= MOBILE VIEW ================= */}
-              <div className="md:hidden flex overflow-x-auto gap-2 snap-x snap-mandatory scroll-smooth pb-4">
-                {listing.images.map((img, i) => (
-                  <div
-                    key={i}
-                    className="flex-shrink-0 w-[85vw] aspect-[4/3] bg-gray-200 rounded-xl overflow-hidden snap-center"
-                  >
-                    <LazyLoadImage
-                      src={img}
-                      width={800}
-                      height={600}
-                      // placeholderSrc="https://via.placeholder.com/800x600"
-                      loading="eager"
-                      className="object-cover w-full h-full"
-                      alt={`Listing ${i}`}
-                    />
-                  </div>
-                ))}
-              </div>
+<div className="mt-5">
+  {!listing?.images || listing.images.length === 0 ? (
+    <div className="w-full h-[400px] bg-gray-200 rounded-xl flex items-center justify-center text-gray-500">
+      No Images Available
+    </div>
+  ) : (
+    <>
+      {/* MOBILE VIEW */}
+      <div className="md:hidden flex overflow-x-auto gap-3 snap-x snap-mandatory scroll-smooth pb-4">
+        {listing.images.map((img, i) => (
+          <div
+            key={i}
+            className="flex-shrink-0 w-[90vw] h-[260px] bg-gray-100 rounded-2xl overflow-hidden snap-center"
+          >
+            <LazyLoadImage
+              src={img}
+              alt={`Listing ${i + 1}`}
+              width="100%"
+              height="100%"
+              className="w-full h-full object-cover object-center"
+            />
+          </div>
+        ))}
+      </div>
 
-              {/* ================= DESKTOP VIEW ================= */}
-              <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[420px] rounded-xl overflow-hidden">
-                {/* BIG IMAGE */}
-                <div className="col-span-2 row-span-2 overflow-hidden">
-                  <LazyLoadImage
-                    src={listing.images?.[0]}
-                    width={1200}
-                    height={800}
-                    className="w-full h-full object-cover center hover:brightness-90 transition"
-                    alt="Main Listing"
-                  />
-                </div>
-
-                {/* SMALL IMAGES */}
-                {listing.images?.slice(1, 5).map((img, i) => (
-                  <div key={i} className="overflow-hidden">
-                    <LazyLoadImage
-                      src={img}
-                      width={600}
-                      height={400}
-                      className="w-full h-full object-cover hover:brightness-90 transition"
-                      alt={`Listing ${i + 1}`}
-                    />
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+      {/* DESKTOP VIEW */}
+      <div className="hidden md:grid grid-cols-4 grid-rows-2 gap-2 h-[500px] rounded-2xl overflow-hidden">
+        <div className="col-span-2 row-span-2 overflow-hidden">
+          <LazyLoadImage
+            src={listing.images?.[0]}
+            alt="Main Listing"
+            width="100%"
+            height="100%"
+            className="w-full h-full object-cover object-center hover:brightness-90 transition duration-300"
+          />
         </div>
+
+        {listing.images?.slice(1, 5).map((img, i) => (
+          <div key={i} className="overflow-hidden">
+            <LazyLoadImage
+              src={img}
+              alt={`Listing ${i + 2}`}
+              width="100%"
+              height="100%"
+             
+              className="w-full h-full object-cover object-center hover:brightness-90 transition duration-300"
+            />
+          </div>
+        ))}
+      </div>
+    </>
+  )}
+</div>
 
         {/* ================= Content ================= */}
         <div className="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-10 px-4 md:px-6">
@@ -477,28 +474,34 @@ useEffect(() => {
 
             {/* Where you'll sleep */}
             <div className="mt-6 border-b border-gray-300 pb-6">
-              <h3 className="text-xl font-semibold mb-4">Where you'll sleep</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="flex flex-col">
-                  <LazyLoadImage
-                    className="w-full h-55 object-cover rounded-lg"
-                    src={listing?.images[1]}
-                    alt="bedroom"
-                  />
-                  <span className="mt-2 font-medium">Bedroom</span>
-                  <span className="text-gray-500 text-sm">1 queen bed</span>
-                </div>
-                <div className="flex flex-col">
-                  <LazyLoadImage
-                    className="w-full h-55 object-cover rounded-lg"
-                    src={listing?.images[3]}
-                    alt="Gallery"
-                  />
-                  <span className="mt-2 font-medium">Gallery</span>
-                  <span className="text-gray-500 text-sm">1 sofa bed</span>
-                </div>
-              </div>
-            </div>
+  <h3 className="text-xl font-semibold mb-4">Where you'll sleep</h3>
+
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+    {[listing?.images?.[1], listing?.images?.[3]].map((img, i) => (
+      <div key={i} className="flex flex-col">
+        
+        <div className="w-full h-[240px] rounded-xl overflow-hidden bg-gray-200">
+          <LazyLoadImage
+            src={img || listing?.images?.[0]}
+            alt="room"
+           
+            className="w-full h-full object-cover object-center"
+          />
+        </div>
+
+        <span className="mt-2 font-medium">
+          {i === 0 ? "Bedroom" : "Living Area"}
+        </span>
+
+        <span className="text-gray-500 text-sm">
+          {i === 0 ? "1 queen bed" : "1 sofa bed"}
+        </span>
+      </div>
+    ))}
+
+  </div>
+</div>
 
             {/* Amenities */}
             <div className="mt-6 mb-8">

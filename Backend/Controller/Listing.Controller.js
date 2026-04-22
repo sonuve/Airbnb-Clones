@@ -300,27 +300,27 @@ export const getCityWiseListings = async(req, res) => {
         ] = await Promise.all([
 
             Listing.find({
-                "location.city": { $regex: "^kashmir$", $options: "i" },
+                "location.state": { $regex: "^kashmir$", $options: "i" },
                 isAvailable: true,
             }).limit(8).lean(),
 
             Listing.find({
-                "location.city": { $regex: "^mumbai$", $options: "i" },
+                "location.state": { $regex: "^Maharashtra$", $options: "i" },
                 isAvailable: true,
             }).limit(8).lean(),
 
             Listing.find({
-                "location.city": { $regex: "^new delhi$", $options: "i" },
+                "location.state": { $regex: "^new delhi$", $options: "i" },
                 isAvailable: true,
             }).limit(8).lean(),
 
             Listing.find({
-                "location.city": { $regex: "^vapi$", $options: "i" },
+                "location.state": { $regex: "^Gujarat$", $options: "i" },
                 isAvailable: true,
             }).limit(8).lean(),
 
             Listing.find({
-                "location.city": { $regex: "^Rajasthan$", $options: "i" },
+                "location.state": { $regex: "^Rajasthan$", $options: "i" },
                 isAvailable: true,
             }).limit(8).lean(),
 
@@ -412,19 +412,36 @@ export const updateListings = async(req, res) => {
                 message: "Listing not found",
             });
         }
+        console.log("BODY:", req.body);
 
         // 🔒 Ownership check
         if (listing.host.toString() !== req.user._id.toString()) {
             return res.status(403).json({
                 success: false,
-                message: "Not authorized to update this listing",
+                message: "Not authorized",
             });
         }
 
         const updatedData = {...req.body };
 
-        // ❌ Prevent host change
         delete updatedData.host;
+
+        // 🔥 FIX 1: Parse location (VERY IMPORTANT)
+        if (req.body.location && typeof req.body.location === "string") {
+            try {
+                req.body.location = JSON.parse(req.body.location);
+            } catch (err) {
+                console.log("Location parse error", err);
+            }
+        }
+
+        // 🔥 FIX 2: Merge properly
+        if (req.body.location) {
+            updatedData.location = {
+                ...(listing.location.toObject() || listing.location),
+                ...req.body.location,
+            };
+        }
 
         /* =============================
            🖼 IMAGE UPDATE LOGIC
@@ -432,22 +449,16 @@ export const updateListings = async(req, res) => {
 
         let finalImages = [];
 
-        // 1️⃣ Get existing images from frontend
         if (req.body.existingImages) {
-            if (Array.isArray(req.body.existingImages)) {
-                finalImages = req.body.existingImages;
-            } else {
-                finalImages = [req.body.existingImages];
-            }
+            finalImages = Array.isArray(req.body.existingImages) ?
+                req.body.existingImages : [req.body.existingImages];
         }
 
-        // 2️⃣ Add newly uploaded images
         if (req.files && req.files.length > 0) {
             const newImages = req.files.map(file => file.path);
             finalImages = [...finalImages, ...newImages];
         }
 
-        // 3️⃣ Set images only if provided
         if (finalImages.length > 0) {
             updatedData.images = finalImages;
         }
@@ -456,7 +467,6 @@ export const updateListings = async(req, res) => {
             id, { $set: updatedData }, { new: true, runValidators: true }
         );
 
-        // 🧹 Clear Redis cache
         await clearListingCache();
 
         return res.status(200).json({
@@ -469,7 +479,7 @@ export const updateListings = async(req, res) => {
         console.error("Update Listing Error:", error);
         return res.status(500).json({
             success: false,
-            message: "Server error. Unable to update listing",
+            message: "Server error",
         });
     }
 };

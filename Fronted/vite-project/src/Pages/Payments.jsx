@@ -2,6 +2,7 @@
 import axios from "axios";
 import React, { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function Payments() {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ function Payments() {
   
       if (orderId) {
         await axios.get(
-          `http://localhost:3000/api/payment/verify/${orderId}`,
+          `${API_URL}/api/payment/verify/${orderId}`,
           { withCredentials: true }
         );
       }

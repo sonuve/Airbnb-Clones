@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { IoMdEye, IoIosEyeOff } from "react-icons/io";
-
+const API_URL = import.meta.env.VITE_API_URL;
 function Signup() {
 
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ function Signup() {
       setLoading(true);
 
       const res = await axios.post(
-        "http://localhost:3000/api/users/signup",
+        `${API_URL}/api/users/signup`,
         form,
         {
           headers:{ "Content-Type":"application/json" },

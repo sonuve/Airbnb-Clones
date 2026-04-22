@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useEffect } from "react";
 import { setBooking } from "../../Redux/Booking";
-
+const API_URL = import.meta.env.VITE_API_URL;
 useEffect(() => {
     const verifyPayment = async () => {
       const params = new URLSearchParams(window.location.search);
@@ -10,11 +10,11 @@ useEffect(() => {
       if (!orderId) return;
   
       await axios.get(
-        `http://localhost:3000/api/payment/verify/${orderId}`
+        `${API_URL}/api/payment/verify/${orderId}`
       );
   
       const bookingRes = await axios.get(
-        "http://localhost:3000/api/booking/my",
+        `${API_URL}/api/booking/my`,
         { withCredentials: true }
       );
   

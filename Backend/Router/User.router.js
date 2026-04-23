@@ -7,18 +7,15 @@ import passport from "passport";
 
 const router = express.Router();
 
-router.post("/signup", apiLimite, signup);
-router.post("/login", apiLimite, login);
-router.get("/logout", logout);
-router.get("/profile", authenticateUser, getUserProfile);
-router.post("/profile/update", authenticateUser, upload.single("profileImage"), profileUpdate);
-router.post("/save/:id", authenticateUser, savePost);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
 
 router.get("/google",
-    passport.authenticate("google", { scope: ["profile", "email"] })
+    passport.authenticate("google", {
+        scope: ["profile", "email"],
+        accessType: "offline",
+        prompt: "consent"
+    })
 );
+
 
 router.get(
     "/google/callback",
@@ -41,5 +38,16 @@ router.get(
         );
     }
 );
+
+router.post("/signup", apiLimite, signup);
+router.post("/login", apiLimite, login);
+router.get("/logout", logout);
+router.get("/profile", authenticateUser, getUserProfile);
+router.post("/profile/update", authenticateUser, upload.single("profileImage"), profileUpdate);
+router.post("/save/:id", authenticateUser, savePost);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
+
+
 
 export default router;

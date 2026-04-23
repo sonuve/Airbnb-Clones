@@ -20,23 +20,25 @@ router.get("/google",
     passport.authenticate("google", { scope: ["profile", "email"] })
 );
 
-router.get("/google/callback",
+router.get(
+    "/google/callback",
     passport.authenticate("google", { session: false }),
     (req, res) => {
+        const { token } = req.user;
 
-        const { token, user } = req.user;
-
-        // 🍪 Set cookie (same as your login)
+        // ✅ Set cookie
         res.cookie("token", token, {
             httpOnly: true,
-            secure: true,
-            sameSite: "None",
+            secure: true, // required on HTTPS (Render)
+            sameSite: "None", // required for cross-site
             path: "/",
             maxAge: 24 * 60 * 60 * 1000,
         });
 
-        // 👉 Redirect to frontend
-        res.redirect(`https://airbnb-clones-1.onrender.com/oauth-success?token=${token}`);
+        // ✅ Redirect to frontend
+        res.redirect(
+            `https://airbnb-clones-1.onrender.com/oauth-success?token=${token}`
+        );
     }
 );
 

@@ -28,7 +28,7 @@ function OAuthSuccess() {
     } else {
       navigate("/login");
     }
-  }, []);
+  }, [dispatch, navigate]);
 
   return <div>Logging in...</div>;
 }

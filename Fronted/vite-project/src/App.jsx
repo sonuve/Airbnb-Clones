@@ -14,9 +14,9 @@ const EditListings=React.lazy(()=>import("./Pages/EditListings"))
 const ProtectedRoute=React.lazy(()=>import("./Components/ProtectedRoute"))
 import { useSelector } from "react-redux";
 import { useSocket } from "./Socket/SocketManager";
-import OAuthSuccess from "./Pages/OAuthSuccess";
 import ForgotPassword from "./Pages/ForgotPassword";
 import ResetPassword from "./Pages/ResetPassword";
+import OAuthSuccess from "./Pages/OAuthSuccess";
 const HostBookingDetails=React.lazy(()=>import("./Pages/HostBookingDetails"))
 
 function App() {

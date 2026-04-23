@@ -73,7 +73,7 @@ function Login() {
   },[form,dispatch,navigate]);
 
   const handleGoogleLogin = () => {
-    window.open(`${API_URL}/api/users/google`, "_self");
+    window.open(`${API_URL}/api/users/google/callback`, "_self");
     };
 
   return (

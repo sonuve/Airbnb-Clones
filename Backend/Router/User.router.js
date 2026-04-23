@@ -35,7 +35,7 @@ router.get("/google/callback",
         });
 
         // 👉 Redirect to frontend
-        res.redirect(`http://localhost:5173/oauth-success?token=${token}`);
+        res.redirect(`https://airbnb-clones-1.onrender.com/oauth-success?token=${token}`);
     }
 );
 

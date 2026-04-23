@@ -52,7 +52,7 @@ app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 
 
 /* Apply rate limit only in production */
-if (process.env.NODE_ENV === "development") {
+if (process.env.NODE_ENV === "production") {
     app.use("/api", apiLimite);
 }
 

@@ -264,7 +264,7 @@ export const resetPassword = async(req, res) => {
 
 
 export const logout = async(req, res) => {
-    const isProd = process.env.NODE_ENV === "development";
+    const isProd = process.env.NODE_ENV === "production";
 
     res.clearCookie("token", {
         httpOnly: true,
